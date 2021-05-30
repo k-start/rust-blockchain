@@ -161,4 +161,26 @@ impl Blockchain {
 
         Ok(())
     }
+
+    pub fn get_balance(&self, addr: &str) -> u64 {
+        let mut balance = 0;
+
+        for block in self.blocks.iter() {
+            for transaction in block.transactions.iter() {
+                for input in transaction.inputs.iter() {
+                    if input.to_addr == addr {
+                        balance -= input.value;
+                    }
+                }
+
+                for output in transaction.outputs.iter() {
+                    if output.to_addr == addr {
+                        balance += output.value;
+                    }
+                }
+            }
+        }
+
+        balance
+    }
 }
