@@ -11,6 +11,7 @@ pub enum BlockValidationErr {
     InvalidInput,
     InsufficientInputValue,
     InvalidCoinbaseTransaction,
+    InvalidTransaction,
 }
 
 pub struct Blockchain {
@@ -37,15 +38,15 @@ impl Blockchain {
             0,
             get_time(),
             vec![0; 32],
-            vec![Transaction {
-                inputs: vec![],
-                outputs: vec![],
-            }],
+            vec![Transaction::new(vec![], vec![])],
             self.difficulty,
         )
     }
 
-    pub fn create_transaction(&mut self, transaction: Transaction) {
+    pub fn add_transaction(&mut self, transaction: Transaction) {
+        if !transaction.valid() {
+            panic!("Invalid transaction");
+        }
         self.pending_transactions.push(transaction);
     }
 
@@ -56,13 +57,13 @@ impl Blockchain {
         let last_block = &self.blocks[self.blocks.len() - 1];
 
         // set up mining reward
-        let mut transactions: Vec<Transaction> = vec![Transaction {
-            inputs: vec![],
-            outputs: vec![Output {
+        let mut transactions: Vec<Transaction> = vec![Transaction::new(
+            vec![],
+            vec![Output {
                 to_addr: reward_addr.to_owned(),
                 value: self.mining_reward,
             }],
-        }];
+        )];
 
         // add pending transactions
         transactions.extend(self.pending_transactions.clone());
@@ -95,6 +96,10 @@ impl Blockchain {
 
         if !block::check_difficulty(&block.hash(), block.difficulty) {
             return Err(BlockValidationErr::InvalidHash);
+        }
+
+        if !block.has_valid_transactions() {
+            return Err(BlockValidationErr::InvalidTransaction);
         }
 
         if i != 0 {

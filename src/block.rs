@@ -76,6 +76,15 @@ impl Block {
             }
         }
     }
+
+    pub fn has_valid_transactions(&self) -> bool {
+        for transaction in self.transactions.iter() {
+            if !transaction.valid() {
+                return false;
+            }
+        }
+        true
+    }
 }
 
 pub fn check_difficulty(hash: &Vec<u8>, difficulty: u128) -> bool {

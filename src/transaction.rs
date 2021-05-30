@@ -1,4 +1,5 @@
 use super::Hashable;
+use ring::signature::{self, KeyPair};
 use std::collections::HashSet;
 
 type Address = String;
@@ -24,6 +25,7 @@ impl Hashable for Output {
 pub struct Transaction {
     pub inputs: Vec<Output>,
     pub outputs: Vec<Output>,
+    pub signature: Vec<u8>,
 }
 
 impl Hashable for Transaction {
@@ -49,6 +51,45 @@ impl Hashable for Transaction {
 }
 
 impl Transaction {
+    pub fn new(inputs: Vec<Output>, outputs: Vec<Output>) -> Transaction {
+        Transaction {
+            inputs: inputs,
+            outputs: outputs,
+            signature: vec![],
+        }
+    }
+
+    pub fn sign(&mut self, key_pair_str: &str) {
+        let key_pair =
+            signature::Ed25519KeyPair::from_pkcs8(&hex::decode(key_pair_str).unwrap()).unwrap();
+
+        if self.inputs[0].to_addr != hex::encode(key_pair.public_key().as_ref()) {
+            panic!("Cannot sign this transaction");
+        }
+
+        let transaction_hash = self.hash();
+        let signature = key_pair.sign(&transaction_hash);
+        self.signature = signature.as_ref().to_vec();
+    }
+
+    pub fn valid(&self) -> bool {
+        if self.inputs.len() == 0 {
+            return true;
+        }
+
+        if self.signature.len() == 0 {
+            panic!("No signature");
+        }
+
+        let public_key = hex::decode(self.inputs[0].to_addr.clone()).unwrap();
+        let peer_public_key = signature::UnparsedPublicKey::new(&signature::ED25519, &public_key);
+        peer_public_key
+            .verify(&self.hash(), &self.signature)
+            .unwrap();
+
+        true
+    }
+
     pub fn input_value(&self) -> u64 {
         self.inputs.iter().map(|input| input.value).sum()
     }
