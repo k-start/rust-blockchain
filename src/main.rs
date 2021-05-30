@@ -21,7 +21,6 @@ fn main() {
     let mut blockchain = Blockchain::new(0x000fffffffffffffffffffffffffffff);
 
     let mut genesis_block = blockchain.create_genesis_block();
-
     genesis_block.mine();
     println!("{:?}", &genesis_block);
 
@@ -34,6 +33,15 @@ fn main() {
             "eec581be559c653d7ffa92a38cb5b1b13921e0ea3d4dd727c3737390b4d3caf0",
         )
         .expect("Failed to add block");
+
+    println!(
+        "eec581be559c653d7ffa92a38cb5b1b13921e0ea3d4dd727c3737390b4d3caf0: {}",
+        blockchain.get_balance("eec581be559c653d7ffa92a38cb5b1b13921e0ea3d4dd727c3737390b4d3caf0")
+    );
+    println!(
+        "6abfd8aea2936793cf810de8ea2fd09713daaef79fa84103d48b547ae89c1f2a: {}",
+        blockchain.get_balance("6abfd8aea2936793cf810de8ea2fd09713daaef79fa84103d48b547ae89c1f2a")
+    );
 
     let mut transaction = Transaction::new(
         vec![Output {
@@ -70,25 +78,42 @@ fn main() {
         "6abfd8aea2936793cf810de8ea2fd09713daaef79fa84103d48b547ae89c1f2a: {}",
         blockchain.get_balance("6abfd8aea2936793cf810de8ea2fd09713daaef79fa84103d48b547ae89c1f2a")
     );
-}
 
-pub fn difficulty_bytes_as_u128(v: &Vec<u8>) -> u128 {
-    ((v[31] as u128) << 0xf * 8)
-        | ((v[30] as u128) << 0xe * 8)
-        | ((v[29] as u128) << 0xd * 8)
-        | ((v[28] as u128) << 0xc * 8)
-        | ((v[27] as u128) << 0xb * 8)
-        | ((v[26] as u128) << 0xa * 8)
-        | ((v[25] as u128) << 0x9 * 8)
-        | ((v[24] as u128) << 0x8 * 8)
-        | ((v[23] as u128) << 0x7 * 8)
-        | ((v[22] as u128) << 0x6 * 8)
-        | ((v[21] as u128) << 0x5 * 8)
-        | ((v[20] as u128) << 0x4 * 8)
-        | ((v[19] as u128) << 0x3 * 8)
-        | ((v[18] as u128) << 0x2 * 8)
-        | ((v[17] as u128) << 0x1 * 8)
-        | ((v[16] as u128) << 0x0 * 8)
+    let mut transaction2 = Transaction::new(
+        vec![Output {
+            to_addr: "6abfd8aea2936793cf810de8ea2fd09713daaef79fa84103d48b547ae89c1f2a".to_owned(),
+            value: 100,
+        }],
+        vec![
+            Output {
+                to_addr: "eec581be559c653d7ffa92a38cb5b1b13921e0ea3d4dd727c3737390b4d3caf0"
+                    .to_owned(),
+                value: 25,
+            },
+            Output {
+                to_addr: "6abfd8aea2936793cf810de8ea2fd09713daaef79fa84103d48b547ae89c1f2a"
+                    .to_owned(),
+                value: 75,
+            },
+        ],
+    );
+    transaction2.sign("3053020101300506032b657004220420cda7b04287faffb55c8132aa7c9a1d47ea8f9c1dd0f14c224f51720d71c67b88a1230321006abfd8aea2936793cf810de8ea2fd09713daaef79fa84103d48b547ae89c1f2a");
+    blockchain.add_transaction(transaction2);
+
+    blockchain
+        .mine_pending_transactions(
+            "6abfd8aea2936793cf810de8ea2fd09713daaef79fa84103d48b547ae89c1f2a",
+        )
+        .expect("Failed to add block");
+
+    println!(
+        "eec581be559c653d7ffa92a38cb5b1b13921e0ea3d4dd727c3737390b4d3caf0: {}",
+        blockchain.get_balance("eec581be559c653d7ffa92a38cb5b1b13921e0ea3d4dd727c3737390b4d3caf0")
+    );
+    println!(
+        "6abfd8aea2936793cf810de8ea2fd09713daaef79fa84103d48b547ae89c1f2a: {}",
+        blockchain.get_balance("6abfd8aea2936793cf810de8ea2fd09713daaef79fa84103d48b547ae89c1f2a")
+    );
 }
 
 pub fn get_time() -> u128 {

@@ -1,4 +1,4 @@
-use super::Hashable;
+use super::{get_time, Hashable};
 use ring::signature::{self, KeyPair};
 use std::collections::HashSet;
 
@@ -25,6 +25,7 @@ impl Hashable for Output {
 pub struct Transaction {
     pub inputs: Vec<Output>,
     pub outputs: Vec<Output>,
+    pub timestamp: u128,
     pub signature: Vec<u8>,
 }
 
@@ -46,6 +47,8 @@ impl Hashable for Transaction {
                 .collect::<Vec<u8>>(),
         );
 
+        bytes.extend(&(self.timestamp).to_le_bytes());
+
         bytes
     }
 }
@@ -55,6 +58,7 @@ impl Transaction {
         Transaction {
             inputs: inputs,
             outputs: outputs,
+            timestamp: get_time(),
             signature: vec![],
         }
     }
