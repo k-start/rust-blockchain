@@ -32,7 +32,7 @@ impl Blockchain {
         }
     }
 
-    pub fn create_genesis_block(difficulty: u128) -> Block {
+    pub fn create_genesis_block(&self) -> Block {
         Block::new(
             0,
             get_time(),
@@ -41,7 +41,7 @@ impl Blockchain {
                 inputs: vec![],
                 outputs: vec![],
             }],
-            difficulty,
+            self.difficulty,
         )
     }
 

@@ -13,11 +13,9 @@ use transaction::{Output, Transaction};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn main() {
-    let difficulty: u128 = 0x000fffffffffffffffffffffffffffff;
+    let mut blockchain = Blockchain::new(0x000fffffffffffffffffffffffffffff);
 
-    let mut blockchain = Blockchain::new(difficulty);
-
-    let mut genesis_block = Blockchain::create_genesis_block(difficulty);
+    let mut genesis_block = blockchain.create_genesis_block();
 
     genesis_block.mine();
     println!("{:?}", &genesis_block);
