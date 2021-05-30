@@ -14,68 +14,41 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 fn main() {
     let difficulty: u128 = 0x000fffffffffffffffffffffffffffff;
-    let mut genesis_block = Block::new(
-        0,
-        get_time(),
-        vec![0; 32],
-        vec![Transaction {
-            inputs: vec![],
-            outputs: vec![Output {
-                to_addr: "Alice".to_owned(),
-                value: 100,
-            }],
-        }],
-        difficulty,
-    );
+
+    let mut blockchain = Blockchain::new(difficulty);
+
+    let mut genesis_block = Blockchain::create_genesis_block(difficulty);
 
     genesis_block.mine();
     println!("{:?}", &genesis_block);
-
-    let last_hash = genesis_block.hash.clone();
-
-    let mut blockchain = Blockchain::new();
 
     blockchain
         .update_with_block(genesis_block)
         .expect("Failed to add genesis block");
 
-    let mut block = Block::new(
-        1,
-        get_time(),
-        last_hash,
-        vec![
-            Transaction {
-                inputs: vec![],
-                outputs: vec![Output {
-                    to_addr: "Bob".to_owned(),
-                    value: 100,
-                }],
+    blockchain
+        .mine_pending_transactions("bob")
+        .expect("Failed to add block");
+
+    blockchain.create_transaction(Transaction {
+        inputs: vec![Output {
+            to_addr: "bob".to_owned(),
+            value: 100,
+        }],
+        outputs: vec![
+            Output {
+                to_addr: "bob".to_owned(),
+                value: 50,
             },
-            Transaction {
-                inputs: vec![Output {
-                    to_addr: "Alice".to_owned(),
-                    value: 100,
-                }],
-                outputs: vec![
-                    Output {
-                        to_addr: "Alice".to_owned(),
-                        value: 90,
-                    },
-                    Output {
-                        to_addr: "Bob".to_owned(),
-                        value: 10,
-                    },
-                ],
+            Output {
+                to_addr: "alice".to_owned(),
+                value: 50,
             },
         ],
-        difficulty,
-    );
-
-    block.mine();
-    println!("{:?}", &block);
+    });
 
     blockchain
-        .update_with_block(block)
+        .mine_pending_transactions("john")
         .expect("Failed to add block");
 }
 

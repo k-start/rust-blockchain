@@ -15,15 +15,75 @@ pub enum BlockValidationErr {
 
 pub struct Blockchain {
     pub blocks: Vec<Block>,
+    pub mining_reward: u64,
+    pub difficulty: u128,
     unspent_outputs: HashSet<Vec<u8>>,
+    pending_transactions: Vec<Transaction>,
 }
 
 impl Blockchain {
-    pub fn new() -> Blockchain {
+    pub fn new(difficulty: u128) -> Blockchain {
         Blockchain {
             blocks: vec![],
+            mining_reward: 100,
+            difficulty: difficulty,
             unspent_outputs: HashSet::new(),
+            pending_transactions: vec![],
         }
+    }
+
+    pub fn create_genesis_block(difficulty: u128) -> Block {
+        Block::new(
+            0,
+            get_time(),
+            vec![0; 32],
+            vec![Transaction {
+                inputs: vec![],
+                outputs: vec![],
+            }],
+            difficulty,
+        )
+    }
+
+    pub fn create_transaction(&mut self, transaction: Transaction) {
+        self.pending_transactions.push(transaction);
+    }
+
+    pub fn mine_pending_transactions(
+        &mut self,
+        reward_addr: &str,
+    ) -> Result<(), BlockValidationErr> {
+        let last_block = &self.blocks[self.blocks.len() - 1];
+
+        // set up mining reward
+        let mut transactions: Vec<Transaction> = vec![Transaction {
+            inputs: vec![],
+            outputs: vec![Output {
+                to_addr: reward_addr.to_owned(),
+                value: self.mining_reward,
+            }],
+        }];
+
+        // add pending transactions
+        transactions.extend(self.pending_transactions.clone());
+
+        let mut block = Block::new(
+            self.blocks.len() as u32,
+            get_time(),
+            last_block.hash.clone(),
+            transactions,
+            self.difficulty,
+        );
+
+        block.mine();
+        println!("{:?}", &block);
+
+        self.update_with_block(block)?;
+
+        // reset pending transactions
+        self.pending_transactions = vec![];
+
+        Ok(())
     }
 
     pub fn update_with_block(&mut self, block: Block) -> Result<(), BlockValidationErr> {

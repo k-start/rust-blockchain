@@ -3,6 +3,7 @@ use std::collections::HashSet;
 
 type Address = String;
 
+#[derive(Clone)]
 pub struct Output {
     pub to_addr: Address,
     pub value: u64,
@@ -19,6 +20,7 @@ impl Hashable for Output {
     }
 }
 
+#[derive(Clone)]
 pub struct Transaction {
     pub inputs: Vec<Output>,
     pub outputs: Vec<Output>,
