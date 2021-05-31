@@ -19,7 +19,9 @@ name = "web-node"
 path = "src/bin/web-node/main.rs"
 
 [dependencies]
-hex = "*"
-crypto-hash = "*"
-ring = "*"
-warp = "*"
+hex = "0.4.3"
+crypto-hash = "0.3.4"
+ring = "0.16.20"
+warp = "0.3.1"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
