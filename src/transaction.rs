@@ -65,9 +65,10 @@ impl Transaction {
 
     pub fn sign(&mut self, key_pair_str: &str) {
         let key_pair =
-            signature::Ed25519KeyPair::from_pkcs8(&hex::decode(key_pair_str).unwrap()).unwrap();
+            signature::Ed25519KeyPair::from_pkcs8(&bs58::decode(key_pair_str).into_vec().unwrap())
+                .unwrap();
 
-        if self.inputs[0].to_addr != hex::encode(key_pair.public_key().as_ref()) {
+        if self.inputs[0].to_addr != bs58::encode(key_pair.public_key().as_ref()).into_string() {
             panic!("Cannot sign this transaction");
         }
 
@@ -85,7 +86,9 @@ impl Transaction {
             panic!("No signature");
         }
 
-        let public_key = hex::decode(self.inputs[0].to_addr.clone()).unwrap();
+        let public_key = bs58::decode(self.inputs[0].to_addr.clone())
+            .into_vec()
+            .unwrap();
         let peer_public_key = signature::UnparsedPublicKey::new(&signature::ED25519, &public_key);
         peer_public_key
             .verify(&self.hash(), &self.signature)

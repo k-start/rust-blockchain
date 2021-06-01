@@ -48,21 +48,9 @@ pub fn generate_keys() {
     let pkcs8_bytes = signature::Ed25519KeyPair::generate_pkcs8(&rng).unwrap();
     let key_pair = signature::Ed25519KeyPair::from_pkcs8(pkcs8_bytes.as_ref()).unwrap();
 
-    let key_pair_hex = hex::encode(pkcs8_bytes.as_ref());
-    let public_key_hex = hex::encode(key_pair.public_key().as_ref());
-    let private_key_hex = key_pair_hex.replace(&public_key_hex, "");
+    let key_pair_bs58 = bs58::encode(pkcs8_bytes.as_ref()).into_string();
+    let public_key_bs58 = bs58::encode(key_pair.public_key().as_ref()).into_string();
 
-    println!("Key Pair: {}", key_pair_hex);
-    println!("Public key: {}", public_key_hex);
-    println!("Private key: {}", private_key_hex);
-
-    let key_pair_2 = signature::Ed25519KeyPair::from_pkcs8(
-        &hex::decode(private_key_hex + &public_key_hex).unwrap(),
-    )
-    .unwrap();
-
-    assert_eq!(
-        key_pair_2.public_key().as_ref(),
-        key_pair.public_key().as_ref()
-    );
+    println!("Key Pair: {}", key_pair_bs58);
+    println!("Public key: {}", public_key_bs58);
 }
