@@ -10,3 +10,8 @@ pub struct RetBlock {
     // pub transactions: Vec<Transaction>,
     pub difficulty: u128,
 }
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct Balance {
+    pub balance: u64,
+}

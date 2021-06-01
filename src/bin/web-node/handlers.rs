@@ -1,6 +1,6 @@
 use super::Chain;
 
-use crate::models::RetBlock;
+use crate::models::{Balance, RetBlock};
 
 pub async fn get_block(chain: Chain) -> Result<impl warp::Reply, warp::Rejection> {
     let blockchain = chain.lock().await;
@@ -16,4 +16,25 @@ pub async fn get_block(chain: Chain) -> Result<impl warp::Reply, warp::Rejection
         difficulty: block.difficulty,
     };
     return Ok(warp::reply::json(&ret_block));
+}
+
+pub async fn get_balance(addr: String, chain: Chain) -> Result<impl warp::Reply, warp::Rejection> {
+    let blockchain = chain.lock().await;
+
+    let balance = blockchain.get_balance(&addr);
+
+    let ret = Balance { balance: balance };
+
+    return Ok(warp::reply::json(&ret));
+}
+
+pub async fn mine(addr: String, chain: Chain) -> Result<impl warp::Reply, warp::Rejection> {
+    let mut blockchain = chain.lock().await;
+
+    blockchain.mine_pending_transactions(&addr).expect("yotte");
+
+    let balance = blockchain.get_balance(&addr);
+    let ret = Balance { balance: balance };
+
+    return Ok(warp::reply::json(&ret));
 }
